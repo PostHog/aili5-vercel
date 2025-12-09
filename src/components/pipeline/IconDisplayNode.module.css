@@ -1,0 +1,93 @@
+.container {
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  border-top-color: var(--foreground);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.iconDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.iconWrapper {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.icon {
+  width: 48px;
+  height: 48px;
+  stroke-width: 1.5;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.iconName {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.explanation {
+  font-size: 0.875rem;
+  color: color-mix(in srgb, var(--foreground) 70%, transparent);
+  margin: 0;
+  max-width: 300px;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+.iconGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+}
+
+.previewIcon {
+  width: 20px;
+  height: 20px;
+  opacity: 0.4;
+}

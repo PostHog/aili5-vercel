@@ -1,0 +1,29 @@
+.builder {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.dragOverlay {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  background: var(--background);
+  border: 1px solid color-mix(in srgb, var(--foreground) 25%, transparent);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: grabbing;
+}
+
+.dragOverlayIcon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+}

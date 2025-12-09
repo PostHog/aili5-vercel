@@ -1,16 +1,32 @@
 import type { Tool } from "@anthropic-ai/sdk/resources/messages";
-import type { NodeType, OutputType } from "@/types/pipeline";
+import type {
+  NodeType,
+  OutputType,
+  PipelineNodeConfig,
+  ColorDisplayConfig,
+  IconDisplayConfig,
+  GaugeDisplayConfig,
+  PixelArtDisplayConfig,
+  WebhookTriggerConfig,
+  SurveyConfig,
+} from "@/types/pipeline";
 import { ICON_IDS } from "@/types/pipeline";
 
 // ─────────────────────────────────────────────────────────────────
-// Tool Definitions for Output Nodes
+// Tool Schema Templates (without names - names are generated dynamically)
 // ─────────────────────────────────────────────────────────────────
 
-export const OUTPUT_TOOLS: Record<string, Tool> = {
+interface ToolTemplate {
+  baseToolName: string;
+  description: string;
+  input_schema: Tool["input_schema"];
+}
+
+// Tool templates for output types that use tool calling (excludes "text" which uses plain response)
+const TOOL_TEMPLATES: Partial<Record<OutputType, ToolTemplate>> = {
   color: {
-    name: "display_color",
-    description:
-      "Display a color to the user. Use this when asked to show, pick, or represent something as a color.",
+    baseToolName: "display_color",
+    description: "Display a color to the user.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -33,16 +49,15 @@ export const OUTPUT_TOOLS: Record<string, Tool> = {
   },
 
   icon: {
-    name: "display_icon",
-    description:
-      "Display an icon to represent a concept, status, or emotion.",
+    baseToolName: "display_icon",
+    description: "Display an icon to represent a concept, status, or emotion.",
     input_schema: {
       type: "object" as const,
       properties: {
         id: {
           type: "string",
           enum: ICON_IDS as unknown as string[],
-          description: "Icon identifier",
+          description: "Icon identifier. Available: " + ICON_IDS.join(", "),
         },
         label: {
           type: "string",
@@ -58,9 +73,8 @@ export const OUTPUT_TOOLS: Record<string, Tool> = {
   },
 
   gauge: {
-    name: "display_gauge",
-    description:
-      "Display a numeric value on a gauge or meter. Use for scores, ratings, percentages, measurements.",
+    baseToolName: "display_gauge",
+    description: "Display a numeric value on a gauge or meter.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -94,9 +108,8 @@ export const OUTPUT_TOOLS: Record<string, Tool> = {
   },
 
   pixel_art: {
-    name: "generate_pixel_art",
-    description:
-      "Generate pixel art on a grid. Each pixel is a hex color. Pixels are listed row by row, left to right, top to bottom.",
+    baseToolName: "generate_pixel_art",
+    description: "Generate pixel art on a grid.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -126,9 +139,8 @@ export const OUTPUT_TOOLS: Record<string, Tool> = {
   },
 
   webhook: {
-    name: "trigger_webhook",
-    description:
-      "Make an HTTP request to a URL. Use when asked to notify, send, or trigger external services.",
+    baseToolName: "trigger_webhook",
+    description: "Make an HTTP request to a URL.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -160,9 +172,8 @@ export const OUTPUT_TOOLS: Record<string, Tool> = {
   },
 
   survey: {
-    name: "ask_survey_question",
-    description:
-      "Present a multiple choice question to the user. Use for gathering preferences, guiding conversations, or creating interactive experiences.",
+    baseToolName: "ask_survey",
+    description: "Present a multiple choice question to the user.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -200,7 +211,6 @@ export const OUTPUT_TOOLS: Record<string, Tool> = {
 // Mapping Utilities
 // ─────────────────────────────────────────────────────────────────
 
-// Map node types to output types (for tool lookup)
 const NODE_TYPE_TO_OUTPUT_TYPE: Partial<Record<NodeType, OutputType>> = {
   color_display: "color",
   icon_display: "icon",
@@ -210,31 +220,126 @@ const NODE_TYPE_TO_OUTPUT_TYPE: Partial<Record<NodeType, OutputType>> = {
   survey: "survey",
 };
 
-// Map tool names to output types
-const TOOL_NAME_TO_OUTPUT_TYPE: Record<string, OutputType> = {
-  display_color: "color",
-  display_icon: "icon",
-  display_gauge: "gauge",
-  generate_pixel_art: "pixel_art",
-  trigger_webhook: "webhook",
-  ask_survey_question: "survey",
-};
+/**
+ * Get the custom name from a node's config, if present
+ */
+function getCustomName(node: PipelineNodeConfig): string | undefined {
+  const config = node.config as
+    | ColorDisplayConfig
+    | IconDisplayConfig
+    | GaugeDisplayConfig
+    | PixelArtDisplayConfig
+    | WebhookTriggerConfig
+    | SurveyConfig;
+  return config?.name;
+}
 
 /**
- * Get the tool definition for a given node type
+ * Generate a tool name from base name and optional custom name
+ * e.g., "display_icon" + "weather" → "display_weather_icon"
  */
-export function getToolForNodeType(nodeType: NodeType): Tool | null {
-  const outputType = NODE_TYPE_TO_OUTPUT_TYPE[nodeType];
+function generateToolName(baseToolName: string, customName?: string): string {
+  if (!customName) return baseToolName;
+
+  // Insert custom name: "display_icon" → "display_weather_icon"
+  const parts = baseToolName.split("_");
+  if (parts.length >= 2) {
+    // Insert after first part: display_[custom]_icon
+    return `${parts[0]}_${customName}_${parts.slice(1).join("_")}`;
+  }
+  return `${baseToolName}_${customName}`;
+}
+
+/**
+ * Generate a tool definition for a specific output node
+ * The tool name is customized based on the node's config.name
+ */
+export function getToolForNode(node: PipelineNodeConfig): Tool | null {
+  const outputType = NODE_TYPE_TO_OUTPUT_TYPE[node.type];
   if (!outputType) return null;
-  return OUTPUT_TOOLS[outputType] ?? null;
+
+  const template = TOOL_TEMPLATES[outputType];
+  if (!template) return null;
+
+  const customName = getCustomName(node);
+  const toolName = generateToolName(template.baseToolName, customName);
+
+  // Enhance description with custom name context
+  let description = template.description;
+  if (customName) {
+    description = `${description} Use this for "${customName}" output.`;
+  }
+
+  return {
+    name: toolName,
+    description,
+    input_schema: template.input_schema,
+  };
 }
 
 /**
- * Convert a tool name to its output type
+ * Parse a tool name to extract the output type and custom name
+ * e.g., "display_weather_icon" → { outputType: "icon", customName: "weather" }
  */
-export function toolNameToOutputType(toolName: string): OutputType | null {
-  return TOOL_NAME_TO_OUTPUT_TYPE[toolName] ?? null;
+export function parseToolName(toolName: string): { outputType: OutputType; customName?: string } | null {
+  // Try each template to find a match
+  for (const [outputType, template] of Object.entries(TOOL_TEMPLATES)) {
+    const baseName = template.baseToolName;
+
+    // Exact match (no custom name)
+    if (toolName === baseName) {
+      return { outputType: outputType as OutputType };
+    }
+
+    // Check for custom name pattern
+    const parts = baseName.split("_");
+    if (parts.length >= 2) {
+      const prefix = parts[0] + "_";
+      const suffix = "_" + parts.slice(1).join("_");
+
+      if (toolName.startsWith(prefix) && toolName.endsWith(suffix)) {
+        const customName = toolName.slice(prefix.length, -suffix.length);
+        if (customName) {
+          return { outputType: outputType as OutputType, customName };
+        }
+      }
+    }
+  }
+
+  return null;
 }
+
+/**
+ * Get tools from all output nodes ABOVE the current inference node.
+ * Context flows downward - each inference gathers tools from preceding output nodes.
+ * Stops at any previous inference node.
+ */
+export function getToolsFromPrecedingNodes(
+  nodes: PipelineNodeConfig[],
+  currentNodeIndex: number
+): { tools: Tool[]; nodeIdByToolName: Record<string, string> } {
+  const tools: Tool[] = [];
+  const nodeIdByToolName: Record<string, string> = {};
+
+  // Scan backwards from current inference node
+  for (let i = currentNodeIndex - 1; i >= 0; i--) {
+    const node = nodes[i];
+
+    // Stop at previous inference node
+    if (node.type === "inference") break;
+
+    const tool = getToolForNode(node);
+    if (tool) {
+      tools.push(tool);
+      nodeIdByToolName[tool.name] = node.id;
+    }
+  }
+
+  return { tools, nodeIdByToolName };
+}
+
+// Alias for backward compatibility
+export const getToolsForDownstreamNodes = getToolsFromPrecedingNodes;
 
 /**
  * Get the output type for a node type
@@ -249,3 +354,15 @@ export function nodeTypeToOutputType(nodeType: NodeType): OutputType | null {
 export function isOutputNode(nodeType: NodeType): boolean {
   return nodeType in NODE_TYPE_TO_OUTPUT_TYPE;
 }
+
+// Legacy export for backward compatibility
+export const OUTPUT_TOOLS = Object.fromEntries(
+  Object.entries(TOOL_TEMPLATES).map(([key, template]) => [
+    key,
+    {
+      name: template.baseToolName,
+      description: template.description,
+      input_schema: template.input_schema,
+    },
+  ])
+) as Record<string, Tool>;

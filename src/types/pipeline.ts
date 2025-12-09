@@ -54,33 +54,45 @@ export interface TextDisplayConfig {
 }
 
 export interface ColorDisplayConfig {
+  /** Unique name for this output - becomes the tool name (e.g., "mood" → "display_mood_color") */
+  name?: string;
   label?: string;
   showHex?: boolean;
 }
 
 export interface IconDisplayConfig {
+  /** Unique name for this output - becomes the tool name (e.g., "weather" → "display_weather_icon") */
+  name?: string;
   label?: string;
   size?: "sm" | "md" | "lg";
 }
 
 export interface GaugeDisplayConfig {
+  /** Unique name for this output - becomes the tool name (e.g., "score" → "display_score_gauge") */
+  name?: string;
   label?: string;
   showValue?: boolean;
   style?: "bar" | "dial" | "number";
 }
 
 export interface PixelArtDisplayConfig {
+  /** Unique name for this output - becomes the tool name */
+  name?: string;
   label?: string;
   pixelSize?: number;
 }
 
 export interface WebhookTriggerConfig {
+  /** Unique name for this output - becomes the tool name */
+  name?: string;
   label?: string;
   allowedDomains?: string[];
   showResponse?: boolean;
 }
 
 export interface SurveyConfig {
+  /** Unique name for this output - becomes the tool name */
+  name?: string;
   label?: string;
   style?: "buttons" | "radio" | "dropdown";
 }

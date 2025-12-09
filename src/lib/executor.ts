@@ -7,11 +7,12 @@ import type {
   PipelineMessage,
   ToolCallResult,
   OutputType,
+  OutputDataByType,
   InferenceConfig,
   SystemPromptConfig,
   UserInputConfig,
 } from "@/types/pipeline";
-import { getToolForNodeType, toolNameToOutputType, isOutputNode } from "./tools";
+import { getToolForNode, parseToolName, isOutputNode } from "./tools";
 
 // ─────────────────────────────────────────────────────────────────
 // Pipeline Executor
@@ -197,6 +198,9 @@ async function callLLM(
   const client = new Anthropic({
     baseURL: gatewayUrl,
     apiKey: executorConfig.posthogApiKey,
+    defaultHeaders: {
+      Authorization: `Bearer ${executorConfig.posthogApiKey}`,
+    },
   });
 
   // Convert messages to Anthropic format
@@ -239,7 +243,7 @@ function getEnabledTools(pipeline: Pipeline, currentNodeIndex: number): Tool[] {
 
     // Add tool for output nodes
     if (isOutputNode(node.type)) {
-      const tool = getToolForNodeType(node.type);
+      const tool = getToolForNode(node);
       if (tool) {
         tools.push(tool);
       }
@@ -258,12 +262,12 @@ function extractToolCalls(content: ContentBlock[]): ToolCallResult[] {
 
   for (const block of content) {
     if (block.type === "tool_use") {
-      const outputType = toolNameToOutputType(block.name);
-      if (outputType) {
+      const parsed = parseToolName(block.name);
+      if (parsed) {
         results.push({
-          type: outputType,
+          type: parsed.outputType,
           toolName: block.name,
-          data: block.input as Record<string, unknown>,
+          data: block.input as OutputDataByType[typeof parsed.outputType],
           explanation: (block.input as Record<string, unknown>).explanation as string | undefined,
         });
       }

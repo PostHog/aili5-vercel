@@ -1,0 +1,213 @@
+.canvas {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  min-height: 0; /* Allow shrinking in flex container */
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.nodeCount {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+}
+
+.nodeList {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 2px dashed color-mix(in srgb, var(--foreground) 15%, transparent);
+  background: color-mix(in srgb, var(--foreground) 2%, transparent);
+  min-height: 0; /* Allow shrinking in flex container */
+  overflow-y: auto;
+  transition: all 0.2s ease;
+}
+
+.nodeList.empty {
+  justify-content: center;
+}
+
+.nodeList.over {
+  border-color: color-mix(in srgb, var(--foreground) 40%, transparent);
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+
+.emptyState {
+  text-align: center;
+  color: color-mix(in srgb, var(--foreground) 40%, transparent);
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.nodeWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.node {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--background);
+  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  border-radius: 10px;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.node:hover {
+  border-color: color-mix(in srgb, var(--foreground) 30%, transparent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.node.dragging {
+  opacity: 0.8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.nodeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  background: color-mix(in srgb, var(--foreground) 4%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+
+.nodeHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  color: color-mix(in srgb, var(--foreground) 40%, transparent);
+  cursor: grab;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.dragHandle:hover {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.nodeIcon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.nodeName {
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.nodeBody {
+  padding: 0.75rem;
+}
+
+.removeButton {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: color-mix(in srgb, var(--foreground) 40%, transparent);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.removeButton:hover {
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+  color: #ef4444;
+}
+
+.connector {
+  width: 2px;
+  height: 24px;
+  background: color-mix(in srgb, var(--foreground) 25%, transparent);
+  position: relative;
+}
+
+.connector::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid color-mix(in srgb, var(--foreground) 25%, transparent);
+}
+
+.dropZone {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem 0;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.dropZone.dropZoneActive {
+  opacity: 1;
+}
+
+.dropZoneLine {
+  flex: 1;
+  height: 2px;
+  background: var(--foreground);
+}
+
+.dropZoneLabel {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--foreground);
+  white-space: nowrap;
+}

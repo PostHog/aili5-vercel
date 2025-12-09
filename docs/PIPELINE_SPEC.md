@@ -4,7 +4,7 @@ This document defines the core architecture for aili5's linear pipeline system. 
 
 ## Overview
 
-A pipeline is an ordered list of nodes. Each node receives a context object, transforms it, and passes it to the next node. Execution is strictly linear—dependencies are determined by position in the array.
+A pipeline is an ordered list of modules. At each inference block, the above blocks' context accumulates to be provided for inference.
 
 ```
 [Node 1] → [Node 2] → [Node 3] → [Node 4]
@@ -596,26 +596,29 @@ async function processNode(
 
 ### Tool Resolution
 
-When an inference node runs, it needs to know which tools to enable. This is determined by scanning downstream nodes:
+Context flows **downward** through the pipeline. When an inference node runs, it gathers tools from all output nodes **above** it (stopping at any previous inference node). This means:
+
+1. Output nodes define what tools the inference below them can use
+2. A second inference node receives the first's output in its context
+3. Each inference "segment" is bounded by inference nodes
 
 ```typescript
-function getEnabledTools(
+function getToolsFromPrecedingNodes(
   pipeline: Pipeline,
   currentNodeIndex: number
 ): Tool[] {
   const tools: Tool[] = [];
 
-  // Look at all nodes after current one
-  for (let i = currentNodeIndex + 1; i < pipeline.nodes.length; i++) {
+  // Scan backwards from current inference node
+  for (let i = currentNodeIndex - 1; i >= 0; i--) {
     const node = pipeline.nodes[i];
-    const tool = getToolForNodeType(node.type);
+
+    // Stop at previous inference node
+    if (node.type === "inference") break;
+
+    const tool = getToolForNode(node);
     if (tool) {
       tools.push(tool);
-    }
-
-    // Stop at next inference node - it has its own tools
-    if (node.type === "inference") {
-      break;
     }
   }
 
@@ -623,9 +626,18 @@ function getEnabledTools(
 }
 ```
 
+**Example pipeline layout:**
+```
+[Icon Display: "mood"]     ← defines display_mood_icon tool
+[System Prompt]            ← sets system context
+[LLM]                      ← gathers tool from icon above, runs inference
+```
+
 ---
 
 ## Example Pipelines
+
+Note: Output nodes are placed **above** the inference node they belong to. Tools flow downward.
 
 ### Simple Chat
 
@@ -635,9 +647,7 @@ function getEnabledTools(
   name: "Simple Chat",
   nodes: [
     { id: "sys", type: "system_prompt", config: { prompt: "You are a helpful assistant." } },
-    { id: "input", type: "user_input", config: { placeholder: "Ask anything..." } },
     { id: "llm", type: "inference", config: { model: "claude-sonnet-4-20250514", temperature: 0.7 } },
-    { id: "output", type: "text_display", config: {} },
   ]
 }
 ```
@@ -649,27 +659,44 @@ function getEnabledTools(
   id: "mood-color",
   name: "Mood to Color",
   nodes: [
-    { id: "sys", type: "system_prompt", config: { prompt: "You translate emotions and moods into colors." } },
-    { id: "input", type: "user_input", config: { placeholder: "Describe your mood..." } },
+    { id: "color", type: "color_display", config: { name: "mood", showHex: true } },
+    { id: "sys", type: "system_prompt", config: { prompt: "You translate emotions and moods into colors. Use the display_mood_color tool." } },
     { id: "llm", type: "inference", config: { model: "claude-haiku-3-20240307", temperature: 0.8 } },
-    { id: "color", type: "color_display", config: { showHex: true } },
   ]
 }
 ```
 
-### Chained Pixel Art
+### Mood to Icon
+
+```typescript
+{
+  id: "mood-icon",
+  name: "Mood to Icon",
+  nodes: [
+    { id: "icon", type: "icon_display", config: { name: "mood", size: "lg" } },
+    { id: "sys", type: "system_prompt", config: { prompt: "You represent emotions as icons. Use the display_mood_icon tool." } },
+    { id: "llm", type: "inference", config: { model: "claude-sonnet-4-20250514", temperature: 0.7 } },
+  ]
+}
+```
+
+### Chained Inference
+
+In chained pipelines, each inference node receives context from the previous one:
 
 ```typescript
 {
   id: "pixel-art-chain",
   name: "Concept to Pixel Art",
   nodes: [
+    // First segment: generate concept description
     { id: "sys1", type: "system_prompt", config: { prompt: "You are a creative director. Describe visual concepts in vivid detail." } },
-    { id: "input", type: "user_input", config: { placeholder: "What should we draw?" } },
     { id: "llm1", type: "inference", config: { model: "claude-sonnet-4-20250514", temperature: 0.9 } },
-    { id: "sys2", type: "system_prompt", config: { prompt: "You are a pixel artist. Convert descriptions into 8x8 pixel art." } },
+
+    // Second segment: convert to pixel art (receives llm1's output in context)
+    { id: "pixels", type: "pixel_art_display", config: { name: "art", pixelSize: 32 } },
+    { id: "sys2", type: "system_prompt", config: { prompt: "You are a pixel artist. Convert the description above into 8x8 pixel art using generate_art_pixel_art." } },
     { id: "llm2", type: "inference", config: { model: "claude-sonnet-4-20250514", temperature: 0.3 } },
-    { id: "pixels", type: "pixel_art_display", config: { pixelSize: 32 } },
   ]
 }
 ```
@@ -681,10 +708,9 @@ function getEnabledTools(
   id: "survey-flow",
   name: "Guided Survey",
   nodes: [
-    { id: "sys", type: "system_prompt", config: { prompt: "You guide users through a preference survey, asking one question at a time." } },
-    { id: "input", type: "user_input", config: { placeholder: "Tell me about yourself..." } },
+    { id: "survey", type: "survey", config: { name: "question", style: "buttons" } },
+    { id: "sys", type: "system_prompt", config: { prompt: "You guide users through a preference survey. Use ask_question_survey to present choices." } },
     { id: "llm", type: "inference", config: { model: "claude-sonnet-4-20250514", temperature: 0.6 } },
-    { id: "survey", type: "survey", config: { style: "buttons" } },
   ]
 }
 ```
