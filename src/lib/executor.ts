@@ -35,6 +35,7 @@ export async function executePipeline(
   let context: PipelineContext = {
     messages: [],
     latestOutputs: [],
+    urlContext: [],
     metadata: {
       pipelineId: pipeline.id,
       startedAt: Date.now(),
@@ -292,6 +293,7 @@ export function createInitialContext(pipelineId: string): PipelineContext {
   return {
     messages: [],
     latestOutputs: [],
+    urlContext: [],
     metadata: {
       pipelineId,
       startedAt: Date.now(),

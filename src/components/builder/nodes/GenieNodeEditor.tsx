@@ -7,10 +7,20 @@ import { AVAILABLE_MODELS } from "@/types/pipeline";
 import styles from "./NodeEditor.module.css";
 
 /**
+ * Genie backstory update parsed from inference response
+ */
+export interface GenieBackstoryUpdate {
+  backstory?: string;
+  shouldAutoRespond?: boolean;
+}
+
+/**
  * Genie Node Interface
  * Implements NodeInterface for genie blocks
+ * Note: The parse method returns GenieBackstoryUpdate (not GenieOutput)
+ * because it parses backstory updates from the main inference response
  */
-export const GenieNodeInterface: NodeInterface<GenieConfig, GenieOutput> = {
+export const GenieNodeInterface: NodeInterface<GenieConfig, GenieBackstoryUpdate> = {
   /**
    * Generate block metadata string for system prompt
    * Formats the genie's conversation history as context
