@@ -71,7 +71,7 @@
   display: flex;
   flex-direction: column;
   background: var(--background);
-  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  border: 4px solid var(--module-color);
   border-radius: 10px;
   transition: all 0.15s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -79,8 +79,8 @@
 }
 
 .node:hover {
-  border-color: color-mix(in srgb, var(--foreground) 30%, transparent);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border-color: var(--module-color);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--module-color) 35%, transparent);
 }
 
 .node.dragging {
@@ -94,8 +94,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.625rem 0.75rem;
-  background: color-mix(in srgb, var(--foreground) 4%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  background: var(--module-color);
+  border-bottom: none;
+  color: white;
 }
 
 .nodeHeaderLeft {
@@ -109,15 +110,15 @@
   align-items: center;
   justify-content: center;
   padding: 0.25rem;
-  color: color-mix(in srgb, var(--foreground) 40%, transparent);
+  color: rgba(255, 255, 255, 0.7);
   cursor: grab;
   border-radius: 4px;
   transition: all 0.15s ease;
 }
 
 .dragHandle:hover {
-  background: color-mix(in srgb, var(--foreground) 8%, transparent);
-  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
 }
 
 .dragHandle:active {
@@ -131,12 +132,14 @@
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .nodeName {
   font-size: 0.8125rem;
   font-weight: 500;
+  color: white;
 }
 
 .nodeBody {
@@ -152,34 +155,22 @@
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: color-mix(in srgb, var(--foreground) 40%, transparent);
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .removeButton:hover {
-  background: color-mix(in srgb, var(--foreground) 10%, transparent);
-  color: #ef4444;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .connector {
-  width: 2px;
-  height: 24px;
-  background: color-mix(in srgb, var(--foreground) 25%, transparent);
-  position: relative;
-}
-
-.connector::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 6px solid color-mix(in srgb, var(--foreground) 25%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0;
+  color: color-mix(in srgb, var(--foreground) 35%, transparent);
 }
 
 .dropZone {

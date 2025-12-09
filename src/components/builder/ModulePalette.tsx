@@ -22,7 +22,20 @@ interface ModuleDefinition {
   description: string;
   icon: LucideIcon;
   category: "input" | "inference" | "output";
+  color: string; // Bright primary color for the module
 }
+
+// Bright primary color palette
+const COLORS = {
+  blue: "#3B82F6",      // System prompt - trustworthy blue
+  yellow: "#FBBF24",    // LLM inference - cheerful yellow
+  grey: "#6B7280",      // Color output - neutral grey
+  purple: "#8B5CF6",    // Icon output - vibrant purple
+  green: "#10B981",     // Gauge output - fresh green
+  orange: "#F97316",    // Pixel art - creative orange
+  cyan: "#06B6D4",      // Webhook - tech cyan
+  red: "#EF4444",       // Survey - attention red
+};
 
 export const MODULE_DEFINITIONS: ModuleDefinition[] = [
   {
@@ -31,6 +44,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     description: "Set model behavior",
     icon: MessageSquare,
     category: "input",
+    color: COLORS.blue,
   },
   {
     type: "inference",
@@ -38,6 +52,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     description: "Run the model",
     icon: Settings,
     category: "inference",
+    color: COLORS.yellow,
   },
   {
     type: "color_display",
@@ -45,6 +60,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     description: "Display a color",
     icon: Palette,
     category: "output",
+    color: COLORS.grey,
   },
   {
     type: "icon_display",
@@ -52,6 +68,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     description: "Display an icon",
     icon: CircleDot,
     category: "output",
+    color: COLORS.purple,
   },
   {
     type: "gauge_display",
@@ -59,6 +76,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     description: "Display a number",
     icon: Gauge,
     category: "output",
+    color: COLORS.green,
   },
   {
     type: "pixel_art_display",
@@ -66,6 +84,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     description: "Display pixel art",
     icon: Grid3X3,
     category: "output",
+    color: COLORS.orange,
   },
   {
     type: "webhook_trigger",
@@ -73,6 +92,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     description: "Trigger HTTP request",
     icon: Webhook,
     category: "output",
+    color: COLORS.cyan,
   },
   {
     type: "survey",
@@ -80,6 +100,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     description: "Multiple choice",
     icon: ClipboardList,
     category: "output",
+    color: COLORS.red,
   },
 ];
 
@@ -102,6 +123,9 @@ function DraggableModule({ module }: DraggableModuleProps) {
     <div
       ref={setNodeRef}
       className={`${styles.module} ${isDragging ? styles.dragging : ""}`}
+      style={{
+        "--module-color": module.color,
+      } as React.CSSProperties}
       {...listeners}
       {...attributes}
     >

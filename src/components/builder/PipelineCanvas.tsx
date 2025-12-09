@@ -8,9 +8,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, X } from "lucide-react";
+import { PipeIcon } from "./PipeIcon";
 import type {
   PipelineNodeConfig,
   NodeConfigByType,
+  ColorOutput,
 } from "@/types/pipeline";
 import { MODULE_DEFINITIONS } from "./ModulePalette";
 import { NodeRenderer } from "./nodes/NodeRenderer";
@@ -68,11 +70,23 @@ function SortableNode({
   const moduleInfo = MODULE_DEFINITIONS.find((m) => m.type === node.type);
   const Icon = moduleInfo?.icon;
 
+  // For color_display nodes, use the generated color if available
+  let nodeColor = moduleInfo?.color;
+  if (node.type === "color_display" && output) {
+    const colorOutput = output as ColorOutput;
+    if (colorOutput.hex) {
+      nodeColor = colorOutput.hex;
+    }
+  }
+
   return (
     <div className={styles.nodeWrapper}>
       <div
         ref={setNodeRef}
-        style={style}
+        style={{
+          ...style,
+          "--module-color": nodeColor,
+        } as React.CSSProperties}
         className={`${styles.node} ${isDragging ? styles.dragging : ""}`}
       >
         <div className={styles.nodeHeader}>
@@ -114,7 +128,11 @@ function SortableNode({
           />
         </div>
       </div>
-      {!isLast && <div className={styles.connector} />}
+      {!isLast && (
+        <div className={styles.connector}>
+          <PipeIcon size={36} />
+        </div>
+      )}
     </div>
   );
 }

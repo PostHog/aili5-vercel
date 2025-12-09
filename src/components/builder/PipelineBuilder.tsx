@@ -303,7 +303,12 @@ export function PipelineBuilder() {
 
       <DragOverlay>
         {activeModule && (
-          <div className={styles.dragOverlay}>
+          <div
+            className={styles.dragOverlay}
+            style={{
+              "--module-color": activeModule.color,
+            } as React.CSSProperties}
+          >
             <div className={styles.dragOverlayIcon}>
               <activeModule.icon size={18} />
             </div>
