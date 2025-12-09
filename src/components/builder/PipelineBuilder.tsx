@@ -4,13 +4,16 @@ import { useState, useCallback } from "react";
 import {
   DndContext,
   DragOverlay,
-  closestCenter,
+  pointerWithin,
+  rectIntersection,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   type DragStartEvent,
   type DragEndEvent,
+  type DragOverEvent,
+  type CollisionDetection,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import type {
@@ -29,7 +32,7 @@ import type {
 } from "@/types/pipeline";
 import { getToolsForDownstreamNodes } from "@/lib/tools";
 import { generateBlockMetadata } from "@/lib/blockParsers";
-import { ModulePalette, MODULE_DEFINITIONS } from "./ModulePalette";
+import { ModulePalette, MODULE_DEFINITIONS, SYSTEM_PROMPT_MODULE } from "./ModulePalette";
 import { PipelineCanvas } from "./PipelineCanvas";
 import styles from "./PipelineBuilder.module.css";
 
@@ -96,6 +99,7 @@ export function PipelineBuilder() {
   const [nodes, setNodes] = useState<PipelineNodeConfig[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeType, setActiveType] = useState<NodeType | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
 
   // State for user inputs (keyed by node id)
   const [userInputs, setUserInputs] = useState<Record<string, string>>({});
@@ -115,7 +119,7 @@ export function PipelineBuilder() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -123,14 +127,37 @@ export function PipelineBuilder() {
     })
   );
 
+  // Custom collision detection that works better for vertical lists
+  const collisionDetection: CollisionDetection = useCallback((args) => {
+    // First try pointerWithin for precise drops
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+    // Fall back to rectIntersection for edge cases
+    return rectIntersection(args);
+  }, []);
+
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
-    setActiveId(active.id as string);
+    const activeIdStr = active.id as string;
+    setActiveId(activeIdStr);
 
     const data = active.data.current as DragData | undefined;
     if (data?.type) {
       setActiveType(data.type);
+    } else {
+      // Dragging an existing node - find its type
+      const existingNode = nodes.find((n) => n.id === activeIdStr);
+      if (existingNode) {
+        setActiveType(existingNode.type);
+      }
     }
+  }, [nodes]);
+
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    const { over } = event;
+    setOverId(over?.id as string | null);
   }, []);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
@@ -138,6 +165,7 @@ export function PipelineBuilder() {
 
     setActiveId(null);
     setActiveType(null);
+    setOverId(null);
 
     if (!over) return;
 
@@ -446,7 +474,9 @@ export function PipelineBuilder() {
 
   // Find module info for drag overlay
   const activeModule = activeType
-    ? MODULE_DEFINITIONS.find((m) => m.type === activeType)
+    ? (activeType === "system_prompt"
+        ? SYSTEM_PROMPT_MODULE
+        : MODULE_DEFINITIONS.find((m) => m.type === activeType))
     : null;
 
   // Combined nodes: fixed system prompt + user-added nodes
@@ -462,8 +492,9 @@ export function PipelineBuilder() {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={collisionDetection}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <div className={styles.builder}>
@@ -480,6 +511,7 @@ export function PipelineBuilder() {
           outputs={outputs}
           urlContexts={urlContexts}
           activeNodeId={activeId}
+          overNodeId={overId}
         />
         <ModulePalette />
       </div>

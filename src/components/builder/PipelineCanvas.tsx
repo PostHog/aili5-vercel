@@ -32,6 +32,7 @@ interface PipelineCanvasProps {
   outputs: Record<string, unknown>;
   urlContexts: Record<string, URLContextItem>;
   activeNodeId: string | null;
+  overNodeId: string | null;
 }
 
 interface SortableNodeProps {
@@ -47,6 +48,7 @@ interface SortableNodeProps {
   output: unknown;
   urlContext: URLContextItem | null;
   isLast: boolean;
+  isDropTarget: boolean;
 }
 
 function SortableNode({
@@ -62,6 +64,7 @@ function SortableNode({
   output,
   urlContext,
   isLast,
+  isDropTarget,
 }: SortableNodeProps) {
   const {
     attributes,
@@ -95,6 +98,12 @@ function SortableNode({
 
   return (
     <div className={styles.nodeWrapper}>
+      {/* Drop indicator above this node */}
+      {isDropTarget && !isDragging && (
+        <div className={styles.dropIndicator}>
+          <div className={styles.dropIndicatorLine} />
+        </div>
+      )}
       <div
         ref={setNodeRef}
         style={{
@@ -180,6 +189,7 @@ export function PipelineCanvas({
   outputs,
   urlContexts,
   activeNodeId,
+  overNodeId,
 }: PipelineCanvasProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: "pipeline-canvas",
@@ -224,13 +234,14 @@ export function PipelineCanvas({
                 output={outputs[node.id] || null}
                 urlContext={urlContexts[node.id] || null}
                 isLast={index === nodes.length - 1}
+                isDropTarget={overNodeId === node.id && activeNodeId !== node.id}
               />
             ))}
           </SortableContext>
         )}
 
-        {/* Show drop indicator when dragging over */}
-        {isOver && activeNodeId && (
+        {/* Show drop indicator when dragging over canvas (drop at end) */}
+        {activeNodeId && (isOver || overNodeId === "pipeline-canvas") && (
           <DropZone index={nodes.length} isOver={true} />
         )}
       </div>
