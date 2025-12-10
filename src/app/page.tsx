@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PipelineBuilder } from "@/components/builder";
 import { usePipelineStore } from "@/store/pipelineStore";
@@ -11,7 +11,7 @@ import { PastePipelineModal } from "@/components/PastePipelineModal";
 import { LoginScreen } from "@/components/auth";
 import styles from "./page.module.css";
 
-export default function Home() {
+function HomeContent() {
   const searchParams = useSearchParams();
   const authError = searchParams.get("auth_error");
 
@@ -98,5 +98,18 @@ export default function Home() {
         onPaste={handlePasteConfirm}
       />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className={styles.loadingScreen}>
+        <div className={styles.loadingSpinner} />
+        <p>Loading...</p>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }

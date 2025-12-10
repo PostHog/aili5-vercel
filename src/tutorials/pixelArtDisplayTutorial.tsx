@@ -10,16 +10,20 @@ export function PixelArtDisplayTutorial() {
   const [output, setOutput] = useState<PixelArtOutput | null>(null);
 
   const handleGeneratePixelArt = () => {
-    // Create a simple 8x8 pixel art pattern
-    const pixels: string[][] = [];
+    // Create a simple 8x8 pixel art pattern using colors map and grid
+    const colors: Record<string, string> = {
+      "R": "#FF6B6B",
+      "T": "#4ECDC4",
+    };
+    const grid: string[] = [];
     for (let y = 0; y < 8; y++) {
-      pixels[y] = [];
+      let row = "";
       for (let x = 0; x < 8; x++) {
-        const pattern = (x + y) % 2 === 0 ? "#FF6B6B" : "#4ECDC4";
-        pixels[y][x] = pattern;
+        row += (x + y) % 2 === 0 ? "R" : "T";
       }
+      grid.push(row);
     }
-    setOutput({ pixels });
+    setOutput({ colors, grid });
   };
 
   return (

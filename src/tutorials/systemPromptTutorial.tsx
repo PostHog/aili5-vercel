@@ -90,9 +90,10 @@ export function SystemPromptTutorial() {
       });
 
       if (result.response) {
+        const response = result.response;
         // Start streaming the response word-by-word
         setIsStreaming(true);
-        const words = result.response.match(/\S+|\s+/g) || [];
+        const words = response.match(/\S+|\s+/g) || [];
         let wordIndex = 0;
 
         const streamInterval = setInterval(() => {
@@ -102,7 +103,7 @@ export function SystemPromptTutorial() {
           } else {
             clearInterval(streamInterval);
             setIsStreaming(false);
-            setOutput({ content: result.response });
+            setOutput({ content: response });
           }
         }, 80); // Same speed as the demo
       }

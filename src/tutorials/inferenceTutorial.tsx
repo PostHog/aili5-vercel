@@ -35,9 +35,10 @@ export function InferenceTutorial() {
       });
 
       if (result.response) {
-        setOutput({ content: result.response });
+        const response = result.response;
+        setOutput({ content: response });
         setShowTokenAnimation(true);
-        setContextItems((prev) => [...prev, `User: ${userInput}`, `Assistant: ${result.response.slice(0, 50)}...`]);
+        setContextItems((prev) => [...prev, `User: ${userInput}`, `Assistant: ${response.slice(0, 50)}...`]);
       }
     } catch (error) {
       console.error("Inference error:", error);

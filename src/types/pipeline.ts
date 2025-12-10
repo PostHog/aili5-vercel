@@ -318,8 +318,13 @@ export interface InferenceResponse {
   toolCalls?: Array<{ toolName: string; toolId: string; input: Record<string, unknown> }>;
 }
 
+export interface GenieMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+}
+
 export interface GenieOutput {
-  messages: Array<{ role: "user" | "assistant" | "system"; content: string }>;
+  messages: GenieMessage[];
   lastUpdated?: number;
 }
 

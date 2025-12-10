@@ -28,4 +28,5 @@ export const TUTORIALS: Record<NodeType, React.ComponentType> = {
   // These node types don't have tutorials yet
   user_input: SystemPromptTutorial, // fallback
   text_display: SystemPromptTutorial, // fallback
+  paint: SystemPromptTutorial, // fallback
 };

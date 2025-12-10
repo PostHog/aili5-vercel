@@ -6,22 +6,22 @@ import type { IconDisplayConfig, IconOutput } from "@/types/pipeline";
 import styles from "./Tutorial.module.css";
 
 const EXAMPLE_ICONS = [
-  { name: "heart", icon: "❤️" },
-  { name: "star", icon: "⭐" },
-  { name: "lightning", icon: "⚡" },
-  { name: "fire", icon: "🔥" },
-];
+  { id: "heart", label: "Heart" },
+  { id: "star", label: "Star" },
+  { id: "sparkles", label: "Sparkles" },
+  { id: "fire", label: "Fire" },
+] as const;
 
 export function IconDisplayTutorial() {
   const [config, setConfig] = useState<IconDisplayConfig>({ size: "md" });
   const [output, setOutput] = useState<IconOutput | null>(null);
 
-  const handleGenerateIcon = (iconName: string) => {
-    const icon = EXAMPLE_ICONS.find((i) => i.name === iconName);
+  const handleGenerateIcon = (iconId: string) => {
+    const icon = EXAMPLE_ICONS.find((i) => i.id === iconId);
     if (icon) {
       setOutput({
-        name: icon.name,
-        icon: icon.icon,
+        id: icon.id,
+        label: icon.label,
       });
     }
   };
@@ -55,12 +55,11 @@ export function IconDisplayTutorial() {
           <div className={styles.iconGrid}>
             {EXAMPLE_ICONS.map((icon) => (
               <button
-                key={icon.name}
+                key={icon.id}
                 className={styles.iconButton}
-                onClick={() => handleGenerateIcon(icon.name)}
+                onClick={() => handleGenerateIcon(icon.id)}
               >
-                <span className={styles.iconPreview}>{icon.icon}</span>
-                {icon.name}
+                {icon.label}
               </button>
             ))}
           </div>
