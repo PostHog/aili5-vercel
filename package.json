@@ -18,7 +18,8 @@
     "next": "16.0.8",
     "node-html-markdown": "^2.0.0",
     "react": "19.2.1",
-    "react-dom": "19.2.1"
+    "react-dom": "19.2.1",
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@types/node": "^20",

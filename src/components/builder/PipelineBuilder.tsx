@@ -1,65 +1,58 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
-import type { PipelineNodeConfig, InferenceConfig, TextOutput } from "@/types/pipeline";
+import type { PipelineNodeConfig, InferenceConfig, TextOutput, GenieOutput } from "@/types/pipeline";
 import { getToolsForDownstreamNodes } from "@/lib/tools";
-import { usePipelineState } from "@/hooks/usePipelineState";
 import { usePipelineDragDrop } from "@/hooks/usePipelineDragDrop";
-import { useURLLoader } from "@/hooks/useURLLoader";
 import { useGenieState } from "@/hooks/useGenieState";
+import { useURLLoader } from "@/hooks/useURLLoader";
 import { buildSystemPrompt } from "@/services/inference/promptBuilder";
 import { routeToolCalls } from "@/services/inference/toolRouter";
 import { runInference } from "@/services/inference/api";
+import { usePipelineStore } from "@/store/pipelineStore";
+import { getGenieConversation, getGenieBackstoryUpdate } from "@/hooks/useGenieState";
 import { ModulePalette, MODULE_DEFINITIONS, SYSTEM_PROMPT_MODULE } from "./ModulePalette";
 import { PipelineCanvas } from "./PipelineCanvas";
 import styles from "./PipelineBuilder.module.css";
 
 export function PipelineBuilder() {
-  // Compose hooks
-  const pipeline = usePipelineState();
+  // Use Zustand store
+  const store = usePipelineStore();
+  const genie = useGenieState();
   const urlLoader = useURLLoader();
 
   const dragDrop = usePipelineDragDrop({
-    nodes: pipeline.nodes,
-    onAddNode: pipeline.addNode,
-    onReorderNodes: pipeline.reorderNodes,
+    nodes: store.nodes,
+    onAddNode: store.addNode,
+    onReorderNodes: store.reorderNodes,
   });
-
-  // Loading state
-  const [loadingNodeId, setLoadingNodeId] = useState<string | null>(null);
 
   // Wrapper for buildSystemPrompt that uses current state
   const buildSystemPromptWrapper = useCallback(
     (nodeIndex: number, additionalPrompt?: string, includeGenies: boolean = true): string => {
-      const precedingNodes = pipeline.nodes.slice(0, nodeIndex);
+      const precedingNodes = store.nodes.slice(0, nodeIndex);
+      
+      // Get genie conversations
+      const genieConversations: Record<string, GenieOutput> = {};
+      precedingNodes.forEach((node) => {
+        if (node.type === "genie") {
+          const conv = getGenieConversation(store, node.id);
+          if (conv) genieConversations[node.id] = conv;
+        }
+      });
+
       return buildSystemPrompt(
-        pipeline.systemPromptConfig.prompt,
+        store.systemPromptConfig.prompt,
         precedingNodes,
-        pipeline.genieConversations,
+        genieConversations,
         urlLoader.urlContexts,
-        pipeline.userInputs,
+        store.userInputs,
         { additionalPrompt, includeGenieConversations: includeGenies }
       );
     },
-    [
-      pipeline.nodes,
-      pipeline.systemPromptConfig.prompt,
-      pipeline.genieConversations,
-      pipeline.userInputs,
-      urlLoader.urlContexts,
-    ]
+    [store, urlLoader.urlContexts]
   );
-
-  const genie = useGenieState({
-    nodes: pipeline.nodes,
-    genieConversations: pipeline.genieConversations,
-    setGenieConversation: pipeline.setGenieConversation,
-    setGenieBackstoryUpdate: pipeline.setGenieBackstoryUpdate,
-    setNodes: pipeline.setNodes,
-    setLoadingNodeId,
-    buildSystemPrompt: buildSystemPromptWrapper,
-  });
 
   // Main inference handler
   const handleRunInference = useCallback(
@@ -69,9 +62,9 @@ export function PipelineBuilder() {
         {
           id: "system-prompt-fixed",
           type: "system_prompt",
-          config: pipeline.systemPromptConfig,
+          config: store.systemPromptConfig,
         },
-        ...pipeline.nodes,
+        ...store.nodes,
       ];
 
       const nodeIndex = fullNodes.findIndex((n) => n.id === inferenceNodeId);
@@ -81,7 +74,7 @@ export function PipelineBuilder() {
       const inferenceConfig = inferenceNode.config as InferenceConfig;
 
       // Get user input from the inference node itself
-      const userMessage = pipeline.userInputs[inferenceNodeId] || "";
+      const userMessage = store.userInputs[inferenceNodeId] || "";
       if (!userMessage.trim()) {
         console.error("No user input provided");
         return;
@@ -93,29 +86,41 @@ export function PipelineBuilder() {
       // Get tools for preceding output nodes (use fullNodes with correct index)
       const { tools, nodeIdByToolName } = getToolsForDownstreamNodes(fullNodes, nodeIndex);
 
+      // Filter out genie update tools from being passed to the LLM as regular output tools
+      const filteredTools = tools.filter((tool) => !tool.name.startsWith("update_genie_"));
+
+      // Get genie conversations
+      const genieConversations: Record<string, GenieOutput> = {};
+      precedingNodes.forEach((node) => {
+        if (node.type === "genie") {
+          const conv = getGenieConversation(store, node.id);
+          if (conv) genieConversations[node.id] = conv;
+        }
+      });
+
       // Build system prompt from preceding nodes
       const systemPrompt =
         buildSystemPrompt(
-          pipeline.systemPromptConfig.prompt,
+          store.systemPromptConfig.prompt,
           precedingNodes,
-          pipeline.genieConversations,
+          genieConversations,
           urlLoader.urlContexts,
-          pipeline.userInputs,
+          store.userInputs,
           { includeGenieConversations: true }
         ) || "You are a helpful assistant.";
 
       // Debug logging
       console.log("=== Inference Debug ===");
       console.log("System prompt length:", systemPrompt.length);
-      console.log("Tools count:", tools.length);
-      console.log("Tools:", JSON.stringify(tools, null, 2));
+      console.log("Tools count:", filteredTools.length);
+      console.log("Tools:", JSON.stringify(filteredTools, null, 2));
       console.log("nodeIdByToolName:", nodeIdByToolName);
       console.log(
         "Preceding nodes:",
         precedingNodes.map((n) => ({ id: n.id, type: n.type }))
       );
 
-      setLoadingNodeId(inferenceNodeId);
+      store.setLoadingNodeId(inferenceNodeId);
 
       try {
         const result = await runInference({
@@ -123,7 +128,7 @@ export function PipelineBuilder() {
           userMessage,
           model: inferenceConfig.model,
           temperature: inferenceConfig.temperature,
-          tools: tools.length > 0 ? tools : undefined,
+          tools: filteredTools.length > 0 ? filteredTools : undefined,
         });
 
         console.log("=== Inference Result ===");
@@ -138,31 +143,40 @@ export function PipelineBuilder() {
 
         // Store text response in the inference node itself
         if (result.response) {
-          pipeline.setOutput(inferenceNodeId, { content: result.response } as TextOutput);
+          store.setOutput(inferenceNodeId, { content: result.response } as TextOutput);
         }
 
-        // Route tool call results to their target output nodes
+        // Process genie updates from tool calls (before routing other tool calls)
+        genie.processBackstoryUpdates(precedingNodes, result, nodeIdByToolName);
+
+        // Route tool call results to their target output nodes (excluding genie updates)
         if (result.toolCalls && result.toolCalls.length > 0) {
-          console.log("Routing tool calls...");
-          const outputs = routeToolCalls(result.toolCalls, nodeIdByToolName);
-          console.log("Routed outputs:", outputs);
-          Object.entries(outputs).forEach(([id, output]) => {
-            console.log(`Setting output for node ${id}:`, output);
-            pipeline.setOutput(id, output);
-          });
+          // Filter out genie update tool calls
+          const nonGenieToolCalls = result.toolCalls.filter(
+            (tc) => !tc.toolName.startsWith("update_genie_")
+          );
+
+          if (nonGenieToolCalls.length > 0) {
+            console.log("Routing tool calls...");
+            const outputs = routeToolCalls(nonGenieToolCalls, nodeIdByToolName);
+            console.log("Routed outputs:", outputs);
+            Object.entries(outputs).forEach(([id, output]) => {
+              console.log(`Setting output for node ${id}:`, output);
+              store.setOutput(id, output);
+            });
+          } else {
+            console.log("No non-genie tool calls received");
+          }
         } else {
           console.log("No tool calls received");
         }
-
-        // Process genie backstory updates
-        genie.processBackstoryUpdates(precedingNodes, result);
       } catch (error) {
         console.error("Failed to run inference:", error);
       } finally {
-        setLoadingNodeId(null);
+        store.setLoadingNodeId(null);
       }
     },
-    [pipeline, urlLoader.urlContexts, genie]
+    [store, urlLoader.urlContexts, genie]
   );
 
   // Compose all nodes (fixed system prompt + user-added nodes)
@@ -170,10 +184,22 @@ export function PipelineBuilder() {
     {
       id: "system-prompt-fixed",
       type: "system_prompt",
-      config: pipeline.systemPromptConfig,
+      config: store.systemPromptConfig,
     },
-    ...pipeline.nodes,
+    ...store.nodes,
   ];
+
+  // Get genie conversations and backstory updates for canvas
+  const genieConversations: Record<string, GenieOutput> = {};
+  const genieBackstoryUpdates: Record<string, boolean> = {};
+  store.nodes.forEach((node) => {
+    if (node.type === "genie") {
+      const conv = getGenieConversation(store, node.id);
+      if (conv) genieConversations[node.id] = conv;
+      const hasUpdate = getGenieBackstoryUpdate(store, node.id);
+      if (hasUpdate) genieBackstoryUpdates[node.id] = true;
+    }
+  });
 
   // Find module info for drag overlay
   const activeModule = dragDrop.activeType
@@ -193,23 +219,25 @@ export function PipelineBuilder() {
       <div className={styles.builder}>
         <PipelineCanvas
           nodes={allNodes}
-          onRemoveNode={pipeline.removeNode}
-          onConfigChange={pipeline.updateConfig}
-          userInputs={pipeline.userInputs}
-          onUserInputChange={pipeline.setUserInput}
+          onRemoveNode={store.removeNode}
+          onConfigChange={store.updateConfig}
+          userInputs={store.userInputs}
+          onUserInputChange={store.setUserInput}
           onRunInference={handleRunInference}
           onLoadURL={urlLoader.loadURL}
-          loadingNodeId={loadingNodeId}
+          loadingNodeId={store.loadingNodeId}
           loadingUrlNodeIds={urlLoader.loadingUrlNodeIds}
-          outputs={pipeline.outputs}
+          outputs={store.outputs}
           urlContexts={urlLoader.urlContexts}
           activeNodeId={dragDrop.activeId}
           overNodeId={dragDrop.overId}
-          genieConversations={pipeline.genieConversations}
+          genieConversations={genieConversations}
           onGenieSelfInference={genie.selfInference}
           onGenieSaveBackstory={genie.saveBackstory}
-          genieBackstoryUpdates={pipeline.genieBackstoryUpdates}
-          onGenieClearUpdate={pipeline.clearGenieUpdate}
+          genieBackstoryUpdates={genieBackstoryUpdates}
+          onGenieClearUpdate={(nodeId) => {
+            store.clearNodeState(nodeId, "genie:backstoryUpdate");
+          }}
         />
         <ModulePalette />
       </div>

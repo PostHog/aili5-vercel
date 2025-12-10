@@ -167,6 +167,143 @@
   font-size: 0.875rem;
 }
 
+/* Markdown styles */
+.response :global(p),
+.genieMessageContent :global(p) {
+  margin: 0;
+}
+
+.response :global(p:last-child),
+.genieMessageContent :global(p:last-child) {
+  margin-bottom: 0;
+}
+
+.response :global(h1),
+.genieMessageContent :global(h1),
+.response :global(h2),
+.genieMessageContent :global(h2),
+.response :global(h3),
+.genieMessageContent :global(h3) {
+  margin: 0.125rem 0 0 0;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.response :global(h1:first-child),
+.genieMessageContent :global(h1:first-child),
+.response :global(h2:first-child),
+.genieMessageContent :global(h2:first-child),
+.response :global(h3:first-child),
+.genieMessageContent :global(h3:first-child) {
+  margin-top: 0;
+}
+
+.response :global(ul),
+.genieMessageContent :global(ul),
+.response :global(ol),
+.genieMessageContent :global(ol) {
+  margin: 0 !important;
+  padding: 0 0 0 1rem !important;
+}
+
+.response :global(li),
+.genieMessageContent :global(li) {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.response :global(li + li),
+.genieMessageContent :global(li + li) {
+  margin-top: 0 !important;
+}
+
+/* Remove spacing from elements before/after lists */
+.response :global(p + ul),
+.genieMessageContent :global(p + ul),
+.response :global(p + ol),
+.genieMessageContent :global(p + ol),
+.response :global(h1 + ul),
+.genieMessageContent :global(h1 + ul),
+.response :global(h2 + ul),
+.genieMessageContent :global(h2 + ul),
+.response :global(h3 + ul),
+.genieMessageContent :global(h3 + ul),
+.response :global(h1 + ol),
+.genieMessageContent :global(h1 + ol),
+.response :global(h2 + ol),
+.genieMessageContent :global(h2 + ol),
+.response :global(h3 + ol),
+.genieMessageContent :global(h3 + ol) {
+  margin-top: 0 !important;
+}
+
+.response :global(ul + p),
+.genieMessageContent :global(ul + p),
+.response :global(ol + p),
+.genieMessageContent :global(ol + p),
+.response :global(ul + h1),
+.genieMessageContent :global(ul + h1),
+.response :global(ul + h2),
+.genieMessageContent :global(ul + h2),
+.response :global(ul + h3),
+.genieMessageContent :global(ul + h3),
+.response :global(ol + h1),
+.genieMessageContent :global(ol + h1),
+.response :global(ol + h2),
+.genieMessageContent :global(ol + h2),
+.response :global(ol + h3),
+.genieMessageContent :global(ol + h3) {
+  margin-top: 0 !important;
+}
+
+.response :global(code),
+.genieMessageContent :global(code) {
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.8125rem;
+}
+
+.response :global(pre),
+.genieMessageContent :global(pre) {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  padding: 0.5rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 0.25rem 0;
+}
+
+.response :global(pre code),
+.genieMessageContent :global(pre code) {
+  background: transparent;
+  padding: 0;
+}
+
+.response :global(blockquote),
+.genieMessageContent :global(blockquote) {
+  border-left: 3px solid color-mix(in srgb, var(--foreground) 30%, transparent);
+  padding-left: 0.5rem;
+  margin: 0.25rem 0;
+  color: color-mix(in srgb, var(--foreground) 80%, transparent);
+}
+
+.response :global(a),
+.genieMessageContent :global(a) {
+  color: color-mix(in srgb, var(--foreground) 90%, transparent);
+  text-decoration: underline;
+}
+
+.response :global(strong),
+.genieMessageContent :global(strong) {
+  font-weight: 600;
+}
+
+.response :global(em),
+.genieMessageContent :global(em) {
+  font-style: italic;
+}
+
 .loadingOutput {
   display: flex;
   align-items: center;

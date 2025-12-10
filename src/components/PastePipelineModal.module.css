@@ -1,0 +1,74 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.error {
+  padding: 0.75rem 1rem;
+  background: color-mix(in srgb, #ef4444 10%, transparent);
+  border: 1px solid color-mix(in srgb, #ef4444 30%, transparent);
+  border-radius: 6px;
+  color: #ef4444;
+  font-size: 0.875rem;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 300px;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--foreground) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--foreground) 15%, transparent);
+  border-radius: 6px;
+  color: var(--foreground);
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.textarea:focus {
+  border-color: color-mix(in srgb, var(--foreground) 30%, transparent);
+}
+
+.textarea::placeholder {
+  color: color-mix(in srgb, var(--foreground) 40%, transparent);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.cancelButton,
+.pasteButton {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+}
+
+.cancelButton {
+  background: transparent;
+  color: var(--foreground);
+}
+
+.cancelButton:hover {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.pasteButton {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  color: var(--foreground);
+}
+
+.pasteButton:hover {
+  background: color-mix(in srgb, var(--foreground) 12%, transparent);
+  border-color: color-mix(in srgb, var(--foreground) 30%, transparent);
+}
+

@@ -6,10 +6,21 @@
 }
 
 .header {
-  text-align: center;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
   flex-shrink: 0;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 100%;
+}
+
+.headerContent > div:first-child {
+  text-align: center;
+  flex: 1;
 }
 
 .title {
@@ -24,6 +35,36 @@
   color: color-mix(in srgb, var(--foreground) 50%, transparent);
   margin: 0.25rem 0 0 0;
 }
+
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  border-radius: 6px;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.actionButton:hover {
+  background: color-mix(in srgb, var(--foreground) 12%, transparent);
+  border-color: color-mix(in srgb, var(--foreground) 30%, transparent);
+}
+
+.actionButton:active {
+  background: color-mix(in srgb, var(--foreground) 15%, transparent);
+}
+
 
 .builderContainer {
   flex: 1;

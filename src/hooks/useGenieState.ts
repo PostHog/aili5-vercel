@@ -1,51 +1,54 @@
 import { useCallback } from "react";
-import type { PipelineNodeConfig, GenieConfig, GenieOutput } from "@/types/pipeline";
+import type { PipelineNodeConfig, GenieConfig, GenieOutput, URLContextItem } from "@/types/pipeline";
 import { runInference, type InferenceResult } from "@/services/inference/api";
 import { parseBlockOutput } from "@/lib/blockParsers";
-
-interface UseGenieStateOptions {
-  nodes: PipelineNodeConfig[];
-  genieConversations: Record<string, GenieOutput>;
-  setGenieConversation: (nodeId: string, conversation: GenieOutput) => void;
-  setGenieBackstoryUpdate: (nodeId: string, hasUpdate: boolean) => void;
-  setNodes: React.Dispatch<React.SetStateAction<PipelineNodeConfig[]>>;
-  setLoadingNodeId: (nodeId: string | null) => void;
-  buildSystemPrompt: (
-    nodeIndex: number,
-    additionalPrompt?: string,
-    includeGenieConversations?: boolean
-  ) => string;
-}
+import { usePipelineStore, type PipelineStore } from "@/store/pipelineStore";
+import { buildSystemPrompt } from "@/services/inference/promptBuilder";
 
 export interface GenieStateActions {
   selfInference: (nodeId: string, userMessage: string) => Promise<void>;
   saveBackstory: (nodeId: string) => Promise<void>;
-  processBackstoryUpdates: (precedingNodes: PipelineNodeConfig[], response: InferenceResult) => void;
+  processBackstoryUpdates: (precedingNodes: PipelineNodeConfig[], response: InferenceResult, nodeIdByToolName?: Record<string, string>) => void;
+}
+
+// Helper functions to get/set genie state from nodeState
+export function getGenieConversation(store: PipelineStore, nodeId: string): GenieOutput | null {
+  return (store.getNodeState(nodeId, "genie:conversation") as GenieOutput) || null;
+}
+
+function setGenieConversation(store: PipelineStore, nodeId: string, conversation: GenieOutput): void {
+  store.setNodeState(nodeId, "genie:conversation", conversation);
+}
+
+export function getGenieBackstoryUpdate(store: PipelineStore, nodeId: string): boolean {
+  return (store.getNodeState(nodeId, "genie:backstoryUpdate") as boolean) || false;
+}
+
+function setGenieBackstoryUpdate(store: PipelineStore, nodeId: string, hasUpdate: boolean): void {
+  store.setNodeState(nodeId, "genie:backstoryUpdate", hasUpdate);
+}
+
+export function clearGenieUpdate(store: PipelineStore, nodeId: string): void {
+  store.clearNodeState(nodeId, "genie:backstoryUpdate");
 }
 
 /**
  * Hook for managing genie-specific state and behaviors
  */
-export function useGenieState({
-  nodes,
-  genieConversations,
-  setGenieConversation,
-  setGenieBackstoryUpdate,
-  setNodes,
-  setLoadingNodeId,
-  buildSystemPrompt,
-}: UseGenieStateOptions): GenieStateActions {
+export function useGenieState(): GenieStateActions {
+  const store = usePipelineStore();
+
   /**
    * Handle genie self-inference (independent from main pipeline)
    */
   const selfInference = useCallback(
     async (nodeId: string, userMessage: string) => {
-      const genieNode = nodes.find((n) => n.id === nodeId);
+      const genieNode = store.nodes.find((n) => n.id === nodeId);
       if (!genieNode || genieNode.type !== "genie") return;
 
-      const genieNodeIndex = nodes.findIndex((n) => n.id === nodeId);
+      const genieNodeIndex = store.nodes.findIndex((n) => n.id === nodeId);
       const genieConfig = genieNode.config as GenieConfig;
-      const conversation = genieConversations[nodeId] || { messages: [] };
+      const conversation = getGenieConversation(store, nodeId) || { messages: [] };
 
       // Build genie's own identity prompt
       let genieIdentityPrompt = `You are ${genieConfig.name}. Act as ${genieConfig.name} would act. ${genieConfig.backstory}`;
@@ -62,14 +65,35 @@ export function useGenieState({
         }
       }
 
+      // Get all genie conversations for context
+      const genieConversations: Record<string, GenieOutput> = {};
+      store.nodes.forEach((node) => {
+        if (node.type === "genie") {
+          const conv = getGenieConversation(store, node.id);
+          if (conv) genieConversations[node.id] = conv;
+        }
+      });
+
+      // Get URL contexts
+      const urlContexts: Record<string, URLContextItem> = {};
+      store.nodes.forEach((node) => {
+        if (node.type === "url_loader") {
+          const context = store.getNodeState(node.id, "url:context") as URLContextItem | undefined;
+          if (context) urlContexts[node.id] = context;
+        }
+      });
+
       // Build system prompt from preceding nodes + genie identity
       const systemPrompt = buildSystemPrompt(
-        genieNodeIndex,
-        genieIdentityPrompt,
-        true // Include other genie conversations
+        store.systemPromptConfig.prompt,
+        store.nodes.slice(0, genieNodeIndex),
+        genieConversations,
+        urlContexts,
+        store.userInputs,
+        { additionalPrompt: genieIdentityPrompt, includeGenieConversations: true }
       );
 
-      setLoadingNodeId(nodeId);
+      store.setLoadingNodeId(nodeId);
 
       try {
         const result = await runInference({
@@ -85,20 +109,20 @@ export function useGenieState({
         }
 
         // Update conversation with user message and assistant response
-        const updatedMessages = [
+        const updatedMessages: GenieOutput["messages"] = [
           ...conversation.messages,
-          { role: "user" as const, content: userMessage },
-          { role: "assistant" as const, content: result.response! },
+          { role: "user", content: userMessage },
+          { role: "assistant", content: result.response! },
         ];
 
-        setGenieConversation(nodeId, { messages: updatedMessages });
+        setGenieConversation(store, nodeId, { messages: updatedMessages });
       } catch (error) {
         console.error("Failed to run genie inference:", error);
       } finally {
-        setLoadingNodeId(null);
+        store.setLoadingNodeId(null);
       }
     },
-    [nodes, genieConversations, setGenieConversation, setLoadingNodeId, buildSystemPrompt]
+    [store]
   );
 
   /**
@@ -106,23 +130,44 @@ export function useGenieState({
    */
   const saveBackstory = useCallback(
     async (nodeId: string) => {
-      const genieNode = nodes.find((n) => n.id === nodeId);
+      const genieNode = store.nodes.find((n) => n.id === nodeId);
       if (!genieNode || genieNode.type !== "genie") return;
 
-      const genieNodeIndex = nodes.findIndex((n) => n.id === nodeId);
+      const genieNodeIndex = store.nodes.findIndex((n) => n.id === nodeId);
       const genieConfig = genieNode.config as GenieConfig;
 
       // Build genie's identity prompt with introduction request
       const genieIdentityPrompt = `You are ${genieConfig.name}. Act as ${genieConfig.name} would act. ${genieConfig.backstory}. Introduce yourself.`;
 
+      // Get all genie conversations for context
+      const genieConversations: Record<string, GenieOutput> = {};
+      store.nodes.forEach((node) => {
+        if (node.type === "genie") {
+          const conv = getGenieConversation(store, node.id);
+          if (conv) genieConversations[node.id] = conv;
+        }
+      });
+
+      // Get URL contexts
+      const urlContexts: Record<string, URLContextItem> = {};
+      store.nodes.forEach((node) => {
+        if (node.type === "url_loader") {
+          const context = store.getNodeState(node.id, "url:context") as URLContextItem | undefined;
+          if (context) urlContexts[node.id] = context;
+        }
+      });
+
       // Build system prompt from preceding nodes + genie identity
       const systemPrompt = buildSystemPrompt(
-        genieNodeIndex,
-        genieIdentityPrompt,
-        true // Include other genie conversations
+        store.systemPromptConfig.prompt,
+        store.nodes.slice(0, genieNodeIndex),
+        genieConversations,
+        urlContexts,
+        store.userInputs,
+        { additionalPrompt: genieIdentityPrompt, includeGenieConversations: true }
       );
 
-      setLoadingNodeId(nodeId);
+      store.setLoadingNodeId(nodeId);
 
       try {
         const result = await runInference({
@@ -138,7 +183,7 @@ export function useGenieState({
         }
 
         // Initialize conversation with introduction
-        setGenieConversation(nodeId, {
+        setGenieConversation(store, nodeId, {
           messages: [
             { role: "user", content: "Introduce yourself." },
             { role: "assistant", content: result.response! },
@@ -147,18 +192,67 @@ export function useGenieState({
       } catch (error) {
         console.error("Failed to get genie introduction:", error);
       } finally {
-        setLoadingNodeId(null);
+        store.setLoadingNodeId(null);
       }
     },
-    [nodes, setGenieConversation, setLoadingNodeId, buildSystemPrompt]
+    [store]
   );
 
   /**
    * Process genie backstory updates from inference response
    */
   const processBackstoryUpdates = useCallback(
-    (precedingNodes: PipelineNodeConfig[], response: InferenceResult) => {
-      // Convert InferenceResult to the format expected by parseBlockOutput
+    (precedingNodes: PipelineNodeConfig[], response: InferenceResult, nodeIdByToolName?: Record<string, string>) => {
+      // Process genie updates from tool calls
+      if (response.toolCalls && response.toolCalls.length > 0) {
+        for (const toolCall of response.toolCalls) {
+          const targetNodeId = nodeIdByToolName?.[toolCall.toolName];
+          if (!targetNodeId) continue;
+
+          const node = precedingNodes.find((n) => n.id === targetNodeId);
+          if (!node || node.type !== "genie") continue;
+
+          const genieConfig = node.config as GenieConfig;
+          const input = toolCall.input as { backstory?: string; message?: string };
+
+          // Update backstory if provided
+          if (input.backstory) {
+            store.setNodes((prev) =>
+              prev.map((n) =>
+                n.id === targetNodeId
+                  ? { ...n, config: { ...genieConfig, backstory: input.backstory! } }
+                  : n
+              )
+            );
+            setGenieBackstoryUpdate(store, targetNodeId, true);
+
+            // Auto-respond if enabled
+            if (genieConfig.autoRespondOnUpdate) {
+              setTimeout(() => {
+                selfInference(targetNodeId, "Your backstory has been updated. Say something new.");
+              }, 500);
+            }
+          }
+
+          // Update conversation if message provided
+          if (input.message) {
+            const currentConversation = getGenieConversation(store, targetNodeId) || { messages: [] };
+            const systemMessage = {
+              role: "system" as const,
+              content: input.message,
+            };
+            const updatedMessages: GenieOutput["messages"] = [...currentConversation.messages, systemMessage];
+
+            setGenieConversation(store, targetNodeId, { messages: updatedMessages });
+            setGenieBackstoryUpdate(store, targetNodeId, true);
+
+            // Immediately trigger genie to respond to the system message
+            selfInference(targetNodeId, input.message);
+          }
+        }
+      }
+
+      // Also check text response for legacy pattern
       const inferenceResponse = {
         response: response.response || "",
         toolCalls: response.toolCalls || [],
@@ -173,18 +267,15 @@ export function useGenieState({
             node.id
           );
           if (update?.backstory) {
-            // Update genie config
             const genieConfig = node.config as GenieConfig;
-            setNodes((prev) =>
+            store.setNodes((prev) =>
               prev.map((n) =>
                 n.id === node.id
                   ? { ...n, config: { ...genieConfig, backstory: update.backstory! } }
                   : n
               )
             );
-            // Show notification
-            setGenieBackstoryUpdate(node.id, true);
-            // Auto-respond if enabled
+            setGenieBackstoryUpdate(store, node.id, true);
             if (update.shouldAutoRespond && genieConfig.autoRespondOnUpdate) {
               setTimeout(() => {
                 selfInference(node.id, "Your backstory has been updated. Say something new.");
@@ -194,7 +285,7 @@ export function useGenieState({
         }
       }
     },
-    [setNodes, setGenieBackstoryUpdate, selfInference]
+    [store, selfInference]
   );
 
   return {
