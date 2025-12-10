@@ -2,23 +2,31 @@ import { PipelineNode } from "./PipelineNode";
 import { AVAILABLE_MODELS, type ModelId } from "@/types/pipeline";
 import styles from "./nodes.module.css";
 
-interface ModelSettingsNodeProps {
+interface ModelAndInferenceNodeProps {
   model: ModelId;
   temperature: number;
+  userMessage: string;
+  loading: boolean;
   onModelChange: (model: ModelId) => void;
   onTemperatureChange: (temperature: number) => void;
+  onUserMessageChange: (value: string) => void;
+  onRun: () => void;
 }
 
-export function ModelSettingsNode({
+export function ModelAndInferenceNode({
   model,
   temperature,
+  userMessage,
+  loading,
   onModelChange,
   onTemperatureChange,
-}: ModelSettingsNodeProps) {
+  onUserMessageChange,
+  onRun,
+}: ModelAndInferenceNodeProps) {
   return (
     <PipelineNode
-      title="Model Settings"
-      description="Choose the model and adjust creativity"
+      title="Model & Inference"
+      description="Configure the model and run your prompt"
     >
       <div className={styles.field}>
         <label className={styles.label} htmlFor="model-select">
@@ -29,6 +37,7 @@ export function ModelSettingsNode({
           className={styles.select}
           value={model}
           onChange={(e) => onModelChange(e.target.value as ModelId)}
+          disabled={loading}
         >
           {AVAILABLE_MODELS.map((m) => (
             <option key={m.id} value={m.id}>
@@ -51,12 +60,43 @@ export function ModelSettingsNode({
           step="0.1"
           value={temperature}
           onChange={(e) => onTemperatureChange(parseFloat(e.target.value))}
+          disabled={loading}
         />
         <div className={styles.sliderLabels}>
           <span>Focused</span>
           <span>Creative</span>
         </div>
       </div>
+
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="user-message">
+          Your Message
+        </label>
+        <textarea
+          id="user-message"
+          className={styles.textarea}
+          value={userMessage}
+          onChange={(e) => onUserMessageChange(e.target.value)}
+          placeholder="What would you like to ask?"
+          rows={3}
+          disabled={loading}
+        />
+      </div>
+
+      <button
+        className={styles.runButton}
+        onClick={onRun}
+        disabled={loading || !userMessage.trim()}
+      >
+        {loading ? (
+          <>
+            <span className={styles.spinner} />
+            Running...
+          </>
+        ) : (
+          "Run Inference"
+        )}
+      </button>
     </PipelineNode>
   );
 }

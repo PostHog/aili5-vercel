@@ -1,5 +1,5 @@
 export { PipelineNode } from "./PipelineNode";
 export { SystemPromptNode } from "./SystemPromptNode";
-export { ModelSettingsNode } from "./ModelSettingsNode";
-export { RunInferenceNode } from "./RunInferenceNode";
+export { ModelAndInferenceNode } from "./ModelAndInferenceNode";
 export { OutputNode } from "./OutputNode";
+export { IconDisplayNode } from "./IconDisplayNode";

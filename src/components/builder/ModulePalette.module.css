@@ -1,0 +1,130 @@
+.palette {
+  width: 260px;
+  height: 100%;
+  background: var(--background);
+  border-left: 1px solid color-mix(in srgb, var(--foreground) 15%, transparent);
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  text-shadow:
+    -1px -1px 0 var(--background),
+    1px -1px 0 var(--background),
+    -1px 1px 0 var(--background),
+    1px 1px 0 var(--background);
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  margin: 0 0 1.25rem 0;
+}
+
+.section {
+  margin-bottom: 1.25rem;
+}
+
+.sectionTitle {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  margin: 0 0 0.5rem 0;
+}
+
+.module {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem;
+  margin-bottom: 0.375rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--module-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--module-color) 25%, transparent);
+  cursor: grab;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.module:hover {
+  background: color-mix(in srgb, var(--module-color) 18%, transparent);
+  border-color: color-mix(in srgb, var(--module-color) 40%, transparent);
+}
+
+.module:active {
+  cursor: grabbing;
+}
+
+.module.dragging {
+  opacity: 0.5;
+}
+
+.moduleIcon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--module-color);
+  color: white;
+  flex-shrink: 0;
+}
+
+.moduleInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.moduleInfoTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.moduleName {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.moduleDescription {
+  font-size: 0.6875rem;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.helpButton {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.helpButton:hover {
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+  color: var(--foreground);
+}

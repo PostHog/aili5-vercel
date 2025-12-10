@@ -1,0 +1,946 @@
+.nodeEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: 0.875rem;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--foreground) 40%, transparent);
+}
+
+.textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--foreground) 70%, transparent);
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--foreground) 40%, transparent);
+}
+
+.hint {
+  font-size: 0.6875rem;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  font-family: monospace;
+}
+
+.select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--foreground) 40%, transparent);
+}
+
+.slider {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--foreground) 15%, transparent);
+  appearance: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--foreground);
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--foreground);
+  cursor: pointer;
+  border: none;
+}
+
+.sliderLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+}
+
+.runButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--foreground);
+  color: var(--background);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.runButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.runButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.buttonRow .runButton {
+  flex: 1;
+}
+
+.inspectButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  border-radius: 6px;
+  background: transparent;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.inspectButton:hover {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  color: var(--foreground);
+  border-color: color-mix(in srgb, var(--foreground) 30%, transparent);
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.outputContainer {
+  min-height: 80px;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--foreground) 15%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--foreground) 3%, transparent);
+}
+
+.response {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+  font-size: 0.875rem;
+}
+
+/* Markdown styles */
+.response :global(p),
+.genieMessageContent :global(p) {
+  margin: 0 0 0.25rem 0; /* Half spacing below paragraphs */
+}
+
+.response :global(p:last-child),
+.genieMessageContent :global(p:last-child) {
+  margin-bottom: 0;
+}
+
+.response :global(h1),
+.genieMessageContent :global(h1),
+.response :global(h2),
+.genieMessageContent :global(h2),
+.response :global(h3),
+.genieMessageContent :global(h3) {
+  margin: 0.125rem 0 0.25rem 0 !important; /* Half spacing below headings */
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* Remove bottom margin when heading is followed by a list */
+.response :global(h1 + ul),
+.genieMessageContent :global(h1 + ul),
+.response :global(h1 + ol),
+.genieMessageContent :global(h1 + ol),
+.response :global(h2 + ul),
+.genieMessageContent :global(h2 + ul),
+.response :global(h2 + ol),
+.genieMessageContent :global(h2 + ol),
+.response :global(h3 + ul),
+.genieMessageContent :global(h3 + ul),
+.response :global(h3 + ol),
+.genieMessageContent :global(h3 + ol) {
+  margin-top: 0 !important;
+}
+
+.response :global(h1:has(+ ul)),
+.genieMessageContent :global(h1:has(+ ul)),
+.response :global(h1:has(+ ol)),
+.genieMessageContent :global(h1:has(+ ol)),
+.response :global(h2:has(+ ul)),
+.genieMessageContent :global(h2:has(+ ul)),
+.response :global(h2:has(+ ol)),
+.genieMessageContent :global(h2:has(+ ol)),
+.response :global(h3:has(+ ul)),
+.genieMessageContent :global(h3:has(+ ul)),
+.response :global(h3:has(+ ol)),
+.genieMessageContent :global(h3:has(+ ol)) {
+  margin-bottom: 0 !important;
+}
+
+.response :global(h1:first-child),
+.genieMessageContent :global(h1:first-child),
+.response :global(h2:first-child),
+.genieMessageContent :global(h2:first-child),
+.response :global(h3:first-child),
+.genieMessageContent :global(h3:first-child) {
+  margin-top: 0;
+}
+
+.response :global(ul),
+.genieMessageContent :global(ul) {
+  margin: 0 0 0.25rem 0 !important; /* Half spacing below lists */
+  padding: 0 0 0 1rem !important;
+  list-style-position: outside !important;
+  line-height: 1.1 !important;
+}
+
+.response :global(ol),
+.genieMessageContent :global(ol) {
+  margin: 0 0 0.25rem 0 !important; /* Half spacing below lists */
+  padding: 0 0 0 1.5rem !important;
+  list-style-position: outside !important;
+  line-height: 1.1 !important;
+}
+
+.response :global(li),
+.genieMessageContent :global(li) {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: list-item !important;
+  list-style-position: outside !important;
+  line-height: 1.1 !important;
+}
+
+.response :global(li + li),
+.genieMessageContent :global(li + li) {
+  margin-top: 0 !important;
+}
+
+/* Remove spacing from paragraphs inside list items */
+.response :global(li p),
+.genieMessageContent :global(li p) {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+}
+
+.response :global(li p:first-child),
+.genieMessageContent :global(li p:first-child) {
+  margin-top: 0 !important;
+}
+
+/* Remove spacing from elements before/after lists */
+.response :global(p + ul),
+.genieMessageContent :global(p + ul),
+.response :global(p + ol),
+.genieMessageContent :global(p + ol),
+.response :global(h1 + ul),
+.genieMessageContent :global(h1 + ul),
+.response :global(h2 + ul),
+.genieMessageContent :global(h2 + ul),
+.response :global(h3 + ul),
+.genieMessageContent :global(h3 + ul),
+.response :global(h1 + ol),
+.genieMessageContent :global(h1 + ol),
+.response :global(h2 + ol),
+.genieMessageContent :global(h2 + ol),
+.response :global(h3 + ol),
+.genieMessageContent :global(h3 + ol) {
+  margin-top: 0 !important;
+}
+
+.response :global(ul + p),
+.genieMessageContent :global(ul + p),
+.response :global(ol + p),
+.genieMessageContent :global(ol + p),
+.response :global(ul + h1),
+.genieMessageContent :global(ul + h1),
+.response :global(ul + h2),
+.genieMessageContent :global(ul + h2),
+.response :global(ul + h3),
+.genieMessageContent :global(ul + h3),
+.response :global(ol + h1),
+.genieMessageContent :global(ol + h1),
+.response :global(ol + h2),
+.genieMessageContent :global(ol + h2),
+.response :global(ol + h3),
+.genieMessageContent :global(ol + h3) {
+  margin-top: 0 !important;
+}
+
+.response :global(code),
+.genieMessageContent :global(code) {
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.8125rem;
+  margin: 0 0.125rem; /* Half spacing around inline code */
+}
+
+.response :global(pre),
+.genieMessageContent :global(pre) {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  padding: 0.5rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 0.25rem 0;
+}
+
+.response :global(pre code),
+.genieMessageContent :global(pre code) {
+  background: transparent;
+  padding: 0;
+}
+
+.response :global(blockquote),
+.genieMessageContent :global(blockquote) {
+  border-left: 3px solid color-mix(in srgb, var(--foreground) 30%, transparent);
+  padding-left: 0.5rem;
+  margin: 0.25rem 0;
+  color: color-mix(in srgb, var(--foreground) 80%, transparent);
+}
+
+.response :global(a),
+.genieMessageContent :global(a) {
+  color: color-mix(in srgb, var(--foreground) 90%, transparent);
+  text-decoration: underline;
+}
+
+.response :global(strong),
+.genieMessageContent :global(strong) {
+  font-weight: 600;
+}
+
+.response :global(em),
+.genieMessageContent :global(em) {
+  font-style: italic;
+}
+
+.loadingOutput {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  font-size: 0.875rem;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: color-mix(in srgb, var(--foreground) 40%, transparent);
+  font-style: italic;
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+/* Icon display specific styles */
+.iconContainer {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.iconWrapper {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.icon {
+  width: 36px;
+  height: 36px;
+  stroke-width: 1.5;
+}
+
+.iconDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.iconName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.explanation {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  margin: 0;
+  max-width: 250px;
+}
+
+.iconGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.375rem;
+}
+
+.previewIcon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.3;
+}
+
+/* Color display specific styles */
+.colorContainer {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.colorDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  width: 100%;
+}
+
+.colorSwatch {
+  width: 100%;
+  height: 80px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.hexValue {
+  font-family: monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.colorDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.colorName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.colorPreview {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.375rem;
+  width: 100%;
+  max-width: 150px;
+}
+
+.previewSwatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  opacity: 0.3;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: color-mix(in srgb, var(--foreground) 70%, transparent);
+  cursor: pointer;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+/* URL Loader specific styles */
+.spinnerIcon {
+  animation: spin 1s linear infinite;
+}
+
+.urlStatus {
+  padding: 0.625rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--foreground) 4%, transparent);
+  font-size: 0.8125rem;
+}
+
+.urlLoading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+}
+
+.urlError {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ef4444;
+}
+
+.urlLoaded {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.urlLoadedHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #10b981;
+}
+
+.urlLink {
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  transition: color 0.15s ease;
+}
+
+.urlLink:hover {
+  color: var(--foreground);
+}
+
+.urlPreview {
+  max-height: 100px;
+  overflow: hidden;
+  padding: 0.5rem;
+  background: color-mix(in srgb, var(--foreground) 4%, transparent);
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+
+.urlPreview pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  color: color-mix(in srgb, var(--foreground) 70%, transparent);
+}
+
+.urlSize {
+  font-size: 0.6875rem;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+}
+
+.urlEmpty {
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  font-style: italic;
+}
+
+/* Text input specific styles */
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.characterCount {
+  font-size: 0.6875rem;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Genie chat specific styles */
+.genieChatContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--foreground) 15%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--foreground) 3%, transparent);
+  padding: 0.75rem;
+  max-height: 400px;
+}
+
+.genieMessages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+  min-height: 150px;
+  max-height: 250px;
+  padding-bottom: 0.5rem;
+}
+
+.genieMessage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.genieMessageUser {
+  align-items: flex-end;
+}
+
+.genieMessageAssistant {
+  align-items: flex-start;
+}
+
+.genieMessageLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.genieMessageContent {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  word-break: break-word;
+  max-width: 85%;
+}
+
+.genieMessageUser .genieMessageContent {
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+}
+
+.genieMessageAssistant .genieMessageContent {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--foreground) 15%, transparent);
+}
+
+.genieMessageSystem {
+  align-items: flex-start;
+}
+
+.genieMessageSystem .genieMessageLabel {
+  color: #a855f7;
+}
+
+.genieMessageSystem .genieMessageContent {
+  background: color-mix(in srgb, #a855f7 10%, transparent);
+  border: 1px solid color-mix(in srgb, #a855f7 25%, transparent);
+  font-style: italic;
+}
+
+.genieMessageThinking {
+  align-items: flex-start;
+}
+
+.genieMessageThinking .loadingOutput {
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  font-style: italic;
+  padding: 0.5rem 0;
+}
+
+.genieInputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  padding-top: 0.75rem;
+}
+
+/* Emoji display specific styles */
+.emojiContainer {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emojiDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.emojiWrapper {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.emoji {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.emojiDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.emojiGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 200px;
+}
+
+.previewEmoji {
+  font-size: 1.5rem;
+  opacity: 0.3;
+  text-align: center;
+}
+
+/* Pixel art display specific styles */
+.pixelArtContainer {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.pixelArtDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  width: 100%;
+}
+
+.pixelArtCanvasContainer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--foreground) 4%, transparent);
+  border-radius: 8px;
+  border: 2px solid color-mix(in srgb, var(--foreground) 15%, transparent);
+}
+
+.pixelArtCanvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  max-width: 100%;
+  height: auto;
+}
+
+.pixelArtGrid {
+  display: grid;
+  gap: 0;
+  border: 2px solid color-mix(in srgb, var(--foreground) 15%, transparent);
+  border-radius: 4px;
+  padding: 2px;
+  background: color-mix(in srgb, var(--foreground) 4%, transparent);
+}
+
+.pixelArtPixel {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.pixelArtPreview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* Streaming cursor animation */
+.streamingCursor {
+  display: inline-block;
+  animation: blink 0.7s infinite;
+  color: var(--foreground);
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Streaming message for genie */
+.genieMessageStreaming {
+  align-items: flex-start;
+}
+
+.genieMessageStreaming .genieMessageContent {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--foreground) 15%, transparent);
+}
+
+/* Paint canvas specific styles */
+.paintToolbar {
+  display: flex;
+  gap: 0.375rem;
+  margin-bottom: 0.5rem;
+}
+
+.paintToolButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  border-radius: 6px;
+  background: transparent;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.paintToolButton:hover {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  color: var(--foreground);
+}
+
+.paintToolActive {
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
+}
+
+.paintToolActive:hover {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.paintClearButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.75rem;
+  height: 32px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  border-radius: 6px;
+  background: transparent;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: auto;
+}
+
+.paintClearButton:hover {
+  background: color-mix(in srgb, #ef4444 10%, transparent);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.paintCanvasContainer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: color-mix(in srgb, var(--foreground) 4%, transparent);
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 15%, transparent);
+}
+
+.paintCanvas {
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  cursor: crosshair;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}

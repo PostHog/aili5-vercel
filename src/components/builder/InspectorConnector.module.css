@@ -1,0 +1,5 @@
+.connector {
+  position: fixed;
+  pointer-events: none;
+  z-index: 50;
+}
