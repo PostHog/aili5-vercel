@@ -89,6 +89,11 @@
   z-index: 100;
 }
 
+.node.highlighted {
+  box-shadow: 0 0 0 3px var(--module-color), 0 0 20px color-mix(in srgb, var(--module-color) 40%, transparent);
+  transform: scale(1.02);
+}
+
 .nodeHeader {
   display: flex;
   align-items: center;

@@ -13,6 +13,7 @@ import { routeToolCalls } from "@/services/inference/toolRouter";
 import { runInference } from "@/services/inference/api";
 import { ModulePalette, MODULE_DEFINITIONS, SYSTEM_PROMPT_MODULE } from "./ModulePalette";
 import { PipelineCanvas } from "./PipelineCanvas";
+import { ContextInspector } from "./ContextInspector";
 import styles from "./PipelineBuilder.module.css";
 
 export function PipelineBuilder() {
@@ -28,6 +29,30 @@ export function PipelineBuilder() {
 
   // Loading state
   const [loadingNodeId, setLoadingNodeId] = useState<string | null>(null);
+
+  // Context inspector state
+  const [inspectorState, setInspectorState] = useState<{
+    isOpen: boolean;
+    targetNodeId: string | null;
+  }>({ isOpen: false, targetNodeId: null });
+  const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
+
+  const toggleInspector = useCallback((nodeId: string) => {
+    setInspectorState((prev) => {
+      // If inspector is open for this node, close it
+      if (prev.isOpen && prev.targetNodeId === nodeId) {
+        setHighlightedNodeId(null);
+        return { isOpen: false, targetNodeId: null };
+      }
+      // Otherwise open it for this node
+      return { isOpen: true, targetNodeId: nodeId };
+    });
+  }, []);
+
+  const closeInspector = useCallback(() => {
+    setInspectorState({ isOpen: false, targetNodeId: null });
+    setHighlightedNodeId(null);
+  }, []);
 
   // Wrapper for buildSystemPrompt that uses current state
   const buildSystemPromptWrapper = useCallback(
@@ -182,6 +207,22 @@ export function PipelineBuilder() {
       : MODULE_DEFINITIONS.find((m) => m.type === dragDrop.activeType)
     : null;
 
+  // Get preceding nodes and tools for inspector
+  const getInspectorData = useCallback(
+    (targetNodeId: string) => {
+      const nodeIndex = allNodes.findIndex((n) => n.id === targetNodeId);
+      if (nodeIndex === -1) return { precedingNodes: [], tools: [] };
+      const precedingNodes = allNodes.slice(0, nodeIndex);
+      const { tools } = getToolsForDownstreamNodes(allNodes, nodeIndex);
+      return { precedingNodes, tools };
+    },
+    [allNodes]
+  );
+
+  const inspectorData = inspectorState.targetNodeId
+    ? getInspectorData(inspectorState.targetNodeId)
+    : { precedingNodes: [], tools: [] };
+
   return (
     <DndContext
       sensors={dragDrop.sensors}
@@ -190,7 +231,19 @@ export function PipelineBuilder() {
       onDragOver={dragDrop.handleDragOver}
       onDragEnd={dragDrop.handleDragEnd}
     >
-      <div className={styles.builder}>
+      <div className={`${styles.builder} ${inspectorState.isOpen ? styles.inspectorOpen : ""}`}>
+        <ContextInspector
+          isOpen={inspectorState.isOpen}
+          onClose={closeInspector}
+          targetNodeId={inspectorState.targetNodeId || ""}
+          systemPromptConfig={pipeline.systemPromptConfig}
+          precedingNodes={inspectorData.precedingNodes}
+          genieConversations={pipeline.genieConversations}
+          urlContexts={urlLoader.urlContexts}
+          userInputs={pipeline.userInputs}
+          tools={inspectorData.tools}
+          onHoverSection={setHighlightedNodeId}
+        />
         <PipelineCanvas
           nodes={allNodes}
           onRemoveNode={pipeline.removeNode}
@@ -210,6 +263,8 @@ export function PipelineBuilder() {
           onGenieSaveBackstory={genie.saveBackstory}
           genieBackstoryUpdates={pipeline.genieBackstoryUpdates}
           onGenieClearUpdate={pipeline.clearGenieUpdate}
+          highlightedNodeId={highlightedNodeId}
+          onInspectContext={toggleInspector}
         />
         <ModulePalette />
       </div>

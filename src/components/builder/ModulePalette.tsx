@@ -130,7 +130,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     name: "Genie",
     description: "Self-inferencing agent",
     icon: Sparkles,
-    category: "input",
+    category: "inference",
     color: "#F59E0B", // amber/gold
   },
 ];

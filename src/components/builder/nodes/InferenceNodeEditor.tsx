@@ -1,6 +1,7 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
+import { Eye } from "lucide-react";
 import type { InferenceConfig, TextOutput } from "@/types/pipeline";
 import { AVAILABLE_MODELS } from "@/types/pipeline";
 import styles from "./NodeEditor.module.css";
@@ -13,6 +14,7 @@ interface InferenceNodeEditorProps {
   onRun: () => void;
   loading: boolean;
   output: TextOutput | null;
+  onInspectContext?: () => void;
 }
 
 export function InferenceNodeEditor({
@@ -23,6 +25,7 @@ export function InferenceNodeEditor({
   onRun,
   loading,
   output,
+  onInspectContext,
 }: InferenceNodeEditorProps) {
   const canRun = userInput.trim().length > 0;
 
@@ -79,20 +82,31 @@ export function InferenceNodeEditor({
         </div>
       </div>
 
-      <button
-        className={styles.runButton}
-        onClick={onRun}
-        disabled={loading || !canRun}
-      >
-        {loading ? (
-          <>
-            <span className={styles.spinner} />
-            Running...
-          </>
-        ) : (
-          "Run"
+      <div className={styles.buttonRow}>
+        {onInspectContext && (
+          <button
+            className={styles.inspectButton}
+            onClick={onInspectContext}
+            title="Inspect Context"
+          >
+            <Eye size={16} />
+          </button>
         )}
-      </button>
+        <button
+          className={styles.runButton}
+          onClick={onRun}
+          disabled={loading || !canRun}
+        >
+          {loading ? (
+            <>
+              <span className={styles.spinner} />
+              Running...
+            </>
+          ) : (
+            "Run"
+          )}
+        </button>
+      </div>
 
       <div className={styles.outputContainer}>
         {loading ? (

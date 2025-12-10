@@ -40,6 +40,8 @@ interface NodeRendererProps {
   onGenieSaveBackstory?: (nodeId: string) => void;
   genieHasUpdate?: boolean;
   onGenieClearUpdate?: (nodeId: string) => void;
+  // Context inspector prop
+  onInspectContext?: (nodeId: string) => void;
 }
 
 export function NodeRenderer({
@@ -57,6 +59,7 @@ export function NodeRenderer({
   onGenieSaveBackstory,
   genieHasUpdate,
   onGenieClearUpdate,
+  onInspectContext,
 }: NodeRendererProps) {
   switch (node.type) {
     case "system_prompt":
@@ -77,6 +80,7 @@ export function NodeRenderer({
           onRun={() => onRunInference?.(node.id)}
           loading={isLoading}
           output={output as TextOutput | null}
+          onInspectContext={onInspectContext ? () => onInspectContext(node.id) : undefined}
         />
       );
 
@@ -134,6 +138,7 @@ export function NodeRenderer({
           loading={isLoading}
           hasUpdate={genieHasUpdate || false}
           onClearUpdate={() => onGenieClearUpdate?.(node.id)}
+          onInspectContext={onInspectContext ? () => onInspectContext(node.id) : undefined}
         />
       );
 

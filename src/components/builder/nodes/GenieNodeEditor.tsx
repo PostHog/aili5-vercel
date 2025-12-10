@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import { Eye } from "lucide-react";
 import type { GenieConfig, GenieOutput } from "@/types/pipeline";
 import type { NodeInterface, InferenceResponse } from "@/lib/nodeInterface";
 import { AVAILABLE_MODELS } from "@/types/pipeline";
@@ -60,6 +61,7 @@ interface GenieNodeEditorProps {
   loading: boolean;
   hasUpdate: boolean;
   onClearUpdate: () => void;
+  onInspectContext?: () => void;
 }
 
 export function GenieNodeEditor({
@@ -71,6 +73,7 @@ export function GenieNodeEditor({
   loading,
   hasUpdate,
   onClearUpdate,
+  onInspectContext,
 }: GenieNodeEditorProps) {
   const [userMessage, setUserMessage] = useState("");
   const [backstoryDirty, setBackstoryDirty] = useState(false);
@@ -269,21 +272,31 @@ export function GenieNodeEditor({
             rows={2}
             disabled={loading || !config.backstory.trim()}
           />
-          <button
-            className={styles.runButton}
-            onClick={handleSendMessage}
-            disabled={loading || !userMessage.trim() || !config.backstory.trim()}
-            style={{ marginTop: "0.5rem" }}
-          >
-            {loading ? (
-              <>
-                <span className={styles.spinner} />
-                Sending...
-              </>
-            ) : (
-              "Send"
+          <div className={styles.buttonRow}>
+            {onInspectContext && (
+              <button
+                className={styles.inspectButton}
+                onClick={onInspectContext}
+                title="Inspect Context"
+              >
+                <Eye size={16} />
+              </button>
             )}
-          </button>
+            <button
+              className={styles.runButton}
+              onClick={handleSendMessage}
+              disabled={loading || !userMessage.trim() || !config.backstory.trim()}
+            >
+              {loading ? (
+                <>
+                  <span className={styles.spinner} />
+                  Sending...
+                </>
+              ) : (
+                "Send"
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

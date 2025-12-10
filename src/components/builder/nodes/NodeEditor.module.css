@@ -137,6 +137,36 @@
   cursor: not-allowed;
 }
 
+.buttonRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.buttonRow .runButton {
+  flex: 1;
+}
+
+.inspectButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 20%, transparent);
+  border-radius: 6px;
+  background: transparent;
+  color: color-mix(in srgb, var(--foreground) 60%, transparent);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.inspectButton:hover {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  color: var(--foreground);
+  border-color: color-mix(in srgb, var(--foreground) 30%, transparent);
+}
+
 .spinner {
   width: 14px;
   height: 14px;
