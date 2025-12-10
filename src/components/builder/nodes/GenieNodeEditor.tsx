@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import type { GenieConfig, GenieOutput } from "@/types/pipeline";
 import type { NodeInterface, InferenceResponse } from "@/lib/nodeInterface";
 import { AVAILABLE_MODELS } from "@/types/pipeline";
@@ -219,19 +220,32 @@ export function GenieNodeEditor({
               {config.backstory ? "Start chatting with " + config.name + "..." : "Set a backstory first"}
             </div>
           ) : (
-            messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`${styles.genieMessage} ${
-                  msg.role === "user" ? styles.genieMessageUser : styles.genieMessageAssistant
-                }`}
-              >
-                <div className={styles.genieMessageLabel}>
-                  {msg.role === "user" ? "You" : config.name}:
+            messages.map((msg, idx) => {
+              let messageClass = styles.genieMessageAssistant;
+              let messageLabel = config.name;
+              
+              if (msg.role === "user") {
+                messageClass = styles.genieMessageUser;
+                messageLabel = "You";
+              } else if (msg.role === "system") {
+                messageClass = styles.genieMessageSystem;
+                messageLabel = "System";
+              }
+              
+              return (
+                <div
+                  key={idx}
+                  className={`${styles.genieMessage} ${messageClass}`}
+                >
+                  <div className={styles.genieMessageLabel}>
+                    {messageLabel}:
+                  </div>
+                  <div className={styles.genieMessageContent}>
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
                 </div>
-                <div className={styles.genieMessageContent}>{msg.content}</div>
-              </div>
-            ))
+              );
+            })
           )}
           {loading && (
             <div className={styles.genieMessage}>

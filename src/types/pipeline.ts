@@ -295,7 +295,7 @@ export interface InferenceResponse {
 }
 
 export interface GenieOutput {
-  messages: Array<{ role: "user" | "assistant"; content: string }>;
+  messages: Array<{ role: "user" | "assistant" | "system"; content: string }>;
   lastUpdated?: number;
 }
 

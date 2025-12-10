@@ -1,5 +1,6 @@
 "use client";
 
+import ReactMarkdown from "react-markdown";
 import type { InferenceConfig, TextOutput } from "@/types/pipeline";
 import { AVAILABLE_MODELS } from "@/types/pipeline";
 import styles from "./NodeEditor.module.css";
@@ -100,7 +101,9 @@ export function InferenceNodeEditor({
             Generating response...
           </div>
         ) : output?.content ? (
-          <div className={styles.response}>{output.content}</div>
+          <div className={styles.response}>
+            <ReactMarkdown>{output.content}</ReactMarkdown>
+          </div>
         ) : (
           <div className={styles.emptyState}>
             Response will appear here
