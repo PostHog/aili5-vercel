@@ -14,7 +14,7 @@ export function getDefaultConfig(type: NodeType): NodeConfigByType[NodeType] {
     case "text_input":
       return { label: "", placeholder: "Enter text to add to context..." };
     case "inference":
-      return { model: "claude-sonnet-4-20250514", temperature: 0.7 };
+      return { model: "claude-sonnet-4-20250514", temperature: 0.4 };
     case "text_display":
       return { label: "Response" };
     case "color_display":
@@ -34,7 +34,7 @@ export function getDefaultConfig(type: NodeType): NodeConfigByType[NodeType] {
         name: "genie",
         backstory: "You are a helpful genie.",
         model: "claude-sonnet-4-20250514",
-        temperature: 0.7,
+        temperature: 0.4,
         autoRespondOnUpdate: false,
       };
     default:
